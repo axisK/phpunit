@@ -266,6 +266,11 @@ abstract class PHPUnit_Framework_TestCase extends PHPUnit_Framework_Assert imple
     protected $testResult;
 
     /**
+     * @var string
+     */
+    protected $autoLoaders = '';
+
+    /**
      * Constructs a test case with the given name.
      *
      * @param  string $name
@@ -564,12 +569,13 @@ abstract class PHPUnit_Framework_TestCase extends PHPUnit_Framework_Assert imple
                 'globals'                        => $globals,
                 'include_path'                   => $includePath,
                 'included_files'                 => $includedFiles,
-                'strict'                         => $strict
+                'strict'                         => $strict,
+                'autoloaders'                    => $this->autoLoaders
               )
             );
 
             $this->prepareTemplate($template);
-
+            
             PHPUnit_Util_PHP::runJob($template->render(), $this, $result);
         } else {
             $result->run($this);
@@ -996,6 +1002,39 @@ abstract class PHPUnit_Framework_TestCase extends PHPUnit_Framework_Assert imple
               'invalid.'
             );
         }
+    }
+
+    /**
+     * Add an autoloader for use by test cases that are in isolation.
+     * This adds an autoloader to the autoloaders string instead of replacing it completely.
+     * 
+     * @param string $require Any class that is required for the autoloader to function.
+     * @param string $method_name The name of the autoloader method.
+     * @param string $loader_method The name of the method to use for loading.
+     * 
+     * @return void
+     */
+    protected function addAutoLoader($require = '', $method_name = '', $loader_method = '') {
+        $autoLoaderTemplate = new Text_Template(
+            sprintf(
+                '%s%sProcess%sAutoLoader.tpl',
+
+                dirname(__FILE__),
+                DIRECTORY_SEPARATOR,
+                DIRECTORY_SEPARATOR,
+                DIRECTORY_SEPARATOR
+            )
+        );
+
+        $autoLoaderTemplate->setVar(
+            array(
+                'require'       => $require,
+                'method_name'   => $method_name,
+                'loader_method' => $loader_method
+            )
+        );
+
+        $this->autoLoaders = $this->autoLoaders . $autoLoaderTemplate->render();
     }
 
     /**

@@ -1,0 +1,6 @@
+
+require_once('{require}');
+function {method_name}($sClassName) {
+	{loader_method}($sClassName);
+}
+spl_autoload_register('{method_name}');
